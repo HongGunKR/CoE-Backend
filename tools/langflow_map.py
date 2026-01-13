@@ -1,4 +1,4 @@
-tool_contexts = ["aider", "continue.dev", "openWebUi"]
+tool_contexts = ["default", "aider", "continue.dev", "openWebUi"]
 
 endpoints = {
     "execute_langflow": "/tools/execute-langflow",
