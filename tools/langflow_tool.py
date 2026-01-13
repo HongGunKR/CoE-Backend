@@ -73,7 +73,15 @@ async def execute_langflow_run(tool_input: Optional[Dict[str, Any]], state: Agen
         
         if not flow_name and not flow_id:
             # 사용자 메시지에서 플로우 이름 추출
-            last_message = state["history"][-1]["content"] if state["history"] else ""
+            history = state.get("history", [])
+            messages = state.get("messages", [])
+            last_message = ""
+            
+            if history:
+                last_message = history[-1].get("content", "") if isinstance(history[-1], dict) else ""
+            elif messages:
+                last_message = messages[-1].get("content", "") if isinstance(messages[-1], dict) else ""
+            
             # 간단한 파싱으로 플로우 이름 추출
             if "실행" in last_message or "execute" in last_message.lower():
                 words = last_message.split()
@@ -85,7 +93,7 @@ async def execute_langflow_run(tool_input: Optional[Dict[str, Any]], state: Agen
                         flow_name = words[i+1]
                         break
         
-        if not flow_name:
+        if not flow_name and not flow_id:
             return {
                 "messages": [{
                     "role": "assistant", 
@@ -139,9 +147,13 @@ async def execute_langflow_run(tool_input: Optional[Dict[str, Any]], state: Agen
             import asyncio
             
             # 입력 데이터 구성
+            user_text = tool_input.get("text", "") if tool_input else ""
+            if not user_text:
+                user_text = last_message
+            
             inputs = {
-                "input_value": state.get("input", ""), # state['input'] 사용
-                "message": last_message # 마지막 메시지 사용
+                "input_value": user_text,
+                "message": user_text
             }
             
             # 비동기 실행을 동기 컨텍스트에서 처리
